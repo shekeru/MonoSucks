@@ -12,14 +12,9 @@ namespace Loader.Console
     {
         static void Main(string[] args)
         {
-            AttachProc(args);
-        }
-        static void AttachProc(string[] args)
-        {
-            System.Console.Out.WriteLine("Process: " + args[0]);
             var Matches = Process.GetProcessesByName(args[0]);
-            Injector Core = new Injector(Matches[0]);
-            Core.Inject(args[1]);
+            System.Console.Out.WriteLine("Injecting Process: " + Matches[0].ProcessName);
+            Stage1.Inject(Matches[0], String.Join("|", args.Skip(1)));
         }
     }
 }
