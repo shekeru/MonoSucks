@@ -23,7 +23,7 @@ LRESULT WINAPI PayloadStage1(int nCode, WPARAM wParam, LPARAM lParam)
 		static HWND _WH = GetActiveWindow();
 		// if has path
 		if (msg && msg->message == I_WM_LOADASM) {
-			//MessageBox(_WH, (char*) msg->wParam, "Injection Target", 0);
+			MessageBox(_WH, (char*) msg->wParam, "Injection Target", 0);
 			msclr::interop::marshal_context ctx;
 			auto ModuleData = (gcnew String((char*) 
 				msg->wParam))->Split('|');
