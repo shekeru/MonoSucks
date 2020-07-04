@@ -1,54 +1,8 @@
-#include <SDKDDKVer.h>
-#define WIN32_LEAN_AND_MEAN  
-#include "windows.h"
-
-#using <System.Dll>
-using namespace System;
-using namespace System::Diagnostics;
-#include <msclr/marshal.h>
+#include "Header.h"
 
 static HHOOK _Hook;
 static unsigned int I_WM_LOADASM =
 	::RegisterWindowMessage("LOADASM!");
-#define chars ctx.marshal_as<const char*>
-
-__declspec(dllexport)
-LRESULT WINAPI PayloadStage1(int nCode, WPARAM wParam, LPARAM lParam)
-{
-	static size_t Size; static LRESULT Result; Result =
-		CallNextHookEx(_Hook, nCode, wParam, lParam);
-	// Check Vars
-	if (!nCode) {
-		auto msg = (CWPSTRUCT*) lParam;
-		static HWND _WH = GetActiveWindow();
-		// if has path
-		if (msg && msg->message == I_WM_LOADASM) {
-			MessageBox(_WH, (char*) msg->wParam, "Injection Target", 0);
-			msclr::interop::marshal_context ctx;
-			auto ModuleData = (gcnew String((char*) 
-				msg->wParam))->Split('|');
-			// Load The Assembly By Path
-			auto Assembly = Reflection::Assembly
-				::LoadFile(ModuleData[0]);
-			if (Assembly) {
-				//MessageBox(_WH, chars(Assembly->FullName), "Assembly Loaded", 0);
-				// Load Class By Name
-				auto Type = Assembly->GetType(ModuleData[1]);
-				if (Type) {
-					//MessageBox(_WH, chars(Type->FullName), 
-					//	"Payload Found", 0);
-					auto Method = Type->GetMethod(ModuleData[2],
-						Reflection::BindingFlags::Public |
-						Reflection::BindingFlags::Static);
-					if (Method) {
-						//MessageBox(_WH, chars(Method->Name), "Method Found", 0);
-						Method->Invoke(nullptr, gcnew array<Object^>(0));
-					}
-				}
-			}
-		}
-	}; return Result;
-};
 
 namespace InjectorCore
 {
@@ -87,4 +41,44 @@ namespace InjectorCore
 			CloseHandle(hProc); FreeLibrary(hInstance);
 		};
 	};
+};
+
+void PayloadStage2(array<String^>^ Info) {
+	msclr::interop::marshal_context ctx;
+	HMODULE Mono = LoadLibrary("mono.dll");
+	// Mono Functions
+	auto GetDomain = MonoFn(mono_domain_get);
+	auto RootDomain = MonoFn(mono_get_root_domain);
+	auto ThreadAttach = MonoFn(mono_thread_attach);
+	auto AssemblyOpen = MonoFn(mono_domain_assembly_open);
+	auto GetImage = MonoFn(mono_assembly_get_image);
+	auto GetClassByName = MonoFn(mono_class_from_name);
+	auto ClassMethod = MonoFn(mono_class_get_method_from_name);
+	auto RuntimeInvoke = MonoFn(mono_runtime_invoke);
+	// Start Mono Thread
+	ThreadAttach(RootDomain());
+	//Open the domain, the assembly, Image, Method, Invocation
+	auto Image = GetImage(AssemblyOpen(GetDomain(), chars(Info[0])));
+	auto Class = GetClassByName(Image, chars(Info[1]), chars(Info[2]));
+	auto Method = ClassMethod(Class, chars(Info[3]), 0);
+	RuntimeInvoke(Method, 0, 0, 0); FreeLibrary(Mono);
+};
+
+__declspec(dllexport)
+LRESULT WINAPI PayloadStage1(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	static size_t Size; static LRESULT Result; Result =
+		CallNextHookEx(_Hook, nCode, wParam, lParam);
+	// Check Vars
+	if (!nCode) {
+		auto msg = (CWPSTRUCT*)lParam;
+		static HWND _WH = GetActiveWindow();
+		// if has path
+		if (msg && msg->message == I_WM_LOADASM) {
+			//MessageBox(_WH, (char*)msg->wParam, "Injection Target", 0);
+			auto ModuleData = (gcnew String((char*)
+				msg->wParam))->Split('|');
+			PayloadStage2(ModuleData);
+		}
+	}; return Result;
 };
