@@ -1,1 +1,0 @@
-Loader.exe BeanBattles "C:\Coding Repos (Home)\MS IL Injecting\BB2\bin\Release\netstandard2.0\esp.dll"  BB2.Loader Init

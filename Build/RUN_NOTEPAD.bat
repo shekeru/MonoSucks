@@ -1,1 +1,0 @@
-x64\Loader.exe notepad "C:\Coding Repos (Home)\MS IL Injecting\Build\x64\HelloWorld.dll" Hello.World.Payload Execute
