@@ -12,6 +12,7 @@
 
 # Build results
 Win32/
+[Bb]uild/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/

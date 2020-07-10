@@ -17,14 +17,14 @@ __declspec(dllexport) LRESULT WINAPI PayloadStage1
 
 #define MonoFn(Name) (Name) \
 	GetProcAddress(Mono, #Name)
-#define MonoType(Ret, Name, ...) typedef \
-	Ret (__cdecl* Name) (__VA_ARGS__)
+#define MonoType(Name, ...) typedef \
+	void* (__cdecl* Name) (__VA_ARGS__)
 
-MonoType(void*, mono_domain_get, void);
-MonoType(void*, mono_get_root_domain, void);
-MonoType(void*, mono_thread_attach, void*);
-MonoType(void*, mono_runtime_invoke, void*, void*, void*, void*);
-MonoType(void*, mono_domain_assembly_open, void*, const char*);
-MonoType(void*, mono_assembly_get_image, void*);
-MonoType(void*, mono_class_from_name, void*, const char*, const char*);
-MonoType(void*, mono_class_get_method_from_name, void*, const char*, int);
+MonoType(mono_domain_get, void);
+MonoType(mono_get_root_domain, void);
+MonoType(mono_thread_attach, void*);
+MonoType(mono_runtime_invoke, void*, void*, void*, void*);
+MonoType(mono_domain_assembly_open, void*, const char*);
+MonoType(mono_assembly_get_image, void*);
+MonoType(mono_class_from_name, void*, const char*, const char*);
+MonoType(mono_class_get_method_from_name, void*, const char*, int);

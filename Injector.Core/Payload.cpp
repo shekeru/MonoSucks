@@ -11,8 +11,7 @@ namespace InjectorCore
 	public:
 		static void Inject(Process^ Proc, String^ AsmStr) {
 			msclr::interop::marshal_context ctx;
-			const char* AsmInfo = 
-				ctx.marshal_as<const char*>(AsmStr);
+			const char* AsmInfo = chars(AsmStr);
 			size_t Len = strlen(AsmInfo);
 			// Get our DLL's Handle
 			HMODULE hInstance;
